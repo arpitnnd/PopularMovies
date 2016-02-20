@@ -13,16 +13,16 @@ import java.util.ArrayList;
 
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
-    private ArrayList<String> array;
+    private ArrayList<String> paths;
 
     public ImageAdapter(Context c, ArrayList<String> paths) {
         mContext = c;
-        array = paths;
+        this.paths = paths;
     }
 
     @Override
     public int getCount() {
-        return array.size();
+        return paths.size();
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ImageAdapter extends BaseAdapter {
         imageView.setAdjustViewBounds(true);
 
         Drawable d = mContext.getResources().getDrawable(R.drawable.loading);
-        Glide.with(mContext).load("http://image.tmdb.org/t/p/w185/" + array.get(position)).placeholder(d).into(imageView);
+        Glide.with(mContext).load("http://image.tmdb.org/t/p/w185/" + paths.get(position)).placeholder(d).into(imageView);
         return imageView;
 
     }
