@@ -18,8 +18,9 @@ import java.util.ArrayList;
 
 public class APITools {
 
-    static String API_KEY = "c7471dc1c8bc98ab58f7596dbb9a7888";
-    static String moviesJSON;
+    //Add you API key here.
+    static String API_KEY = "";
+    String moviesJSON;
     Context context;
 
     APITools(Context context) {

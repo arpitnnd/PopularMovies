@@ -19,8 +19,6 @@ import java.util.Locale;
 
 public class DetailsActivity extends AppCompatActivity {
 
-    int position;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +28,7 @@ public class DetailsActivity extends AppCompatActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        position = getIntent().getIntExtra("position", 0);
+        int position = getIntent().getIntExtra("position", 0);
         MovieDetails movieDetails = new MovieDetails();
         try {
             movieDetails = MainActivity.api.getMovieDetails(position);

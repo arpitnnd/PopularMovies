@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 
@@ -21,26 +22,26 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     public static APITools api;
-    static GridView gridView;
-    static boolean sortByPopularity;
+    GridView gridView;
+    boolean sortByPopularity;
     SharedPreferences sharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         sharedPref = getSharedPreferences("prefs", Context.MODE_PRIVATE);
         api = new APITools(this);
-        ArrayList<String> array = new ArrayList<>();
-        ImageAdapter adapter = new ImageAdapter(this, array);
         refreshPosters();
 
-
         gridView = (GridView) findViewById(R.id.gridView);
-        gridView.setAdapter(adapter);
+
+        if (savedInstanceState != null)
+            gridView.setSelection(savedInstanceState.getInt("scroll_state"));
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -50,7 +51,16 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt("scroll_state", gridView.getFirstVisiblePosition());
+
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -67,24 +77,25 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        SharedPreferences.Editor editor = sharedPref.edit();
+        if (id == R.id.pop || id == R.id.rat) {
+            SharedPreferences.Editor editor = sharedPref.edit();
 
-        if (id == R.id.pop)
-            editor.putBoolean("sort_by_pop", true);
-        else if (id == R.id.rat)
-            editor.putBoolean("sort_by_pop", false);
+            if (id == R.id.pop)
+                editor.putBoolean("sort_by_pop", true);
+            else
+                editor.putBoolean("sort_by_pop", false);
 
-        boolean temp = sharedPref.getBoolean("sort_by_pop", true);
-        editor.apply();
-        if (!(temp == sharedPref.getBoolean("sort_by_pop", false))) {
-            refreshPosters();
+            boolean temp = sharedPref.getBoolean("sort_by_pop", true);
+            editor.apply();
+            if (!(temp == sharedPref.getBoolean("sort_by_pop", true))) {
+                refreshPosters();
+            }
+            invalidateOptionsMenu();
         }
 
-        invalidateOptionsMenu();
-
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        else if (id == R.id.action_settings) {
+            Toast.makeText(MainActivity.this, "Feature not implemented yet.", Toast.LENGTH_SHORT).show();
         }
 
         return super.onOptionsItemSelected(item);
