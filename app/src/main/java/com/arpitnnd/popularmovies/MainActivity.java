@@ -14,6 +14,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,16 +33,18 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         sharedPref = getSharedPreferences("prefs", Context.MODE_PRIVATE);
-
+        api = new APITools(this);
         ArrayList<String> array = new ArrayList<>();
         ImageAdapter adapter = new ImageAdapter(this, array);
+        refreshPosters();
+
+
         gridView = (GridView) findViewById(R.id.gridView);
         gridView.setAdapter(adapter);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                System.out.println(position);
                 Intent intent = new Intent(getApplicationContext(), DetailsActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);
@@ -50,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         getMenuInflater().inflate(R.menu.menu_popup, menu);
         if (sharedPref.getBoolean("sort_by_pop", true))
@@ -62,9 +65,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -90,14 +90,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        refreshPosters();
-    }
-
     public void refreshPosters() {
-        api = new APITools(this);
         if (api.isNetworkAvailable()) {
             sortByPopularity = sharedPref.getBoolean("sort_by_pop", true);
             new ImageLoadTask().execute();
@@ -110,14 +103,14 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected ArrayList<String> doInBackground(Void... params) {
-            while (true) {
-                try {
-                    return api.getPosterPaths(sortByPopularity);
-                } catch (Exception e) {
-                    continue;
-                }
-            }
 
+            ArrayList<String> posterPaths = null;
+            try {
+                posterPaths = api.getPosterPaths(sortByPopularity);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return posterPaths;
         }
 
         @Override

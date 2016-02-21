@@ -26,7 +26,7 @@ public class APITools {
         this.context = context;
     }
 
-    public static MovieDetails getMovieDetails(int position) throws JSONException {
+    public MovieDetails getMovieDetails(int position) throws JSONException {
         JSONArray moviesArray = new JSONObject(moviesJSON).getJSONArray("results");
 
         MovieDetails movieDetails = new MovieDetails();
@@ -40,11 +40,6 @@ public class APITools {
         return movieDetails;
     }
 
-    public void refresh(boolean sortByPop) {
-        if (isNetworkAvailable())
-            moviesJSON = getMoviesJSON(sortByPop);
-    }
-
     public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
@@ -52,59 +47,62 @@ public class APITools {
     }
 
     public String getMoviesJSON(boolean sortByPop) {
-        {
-            while (true) {
-                HttpURLConnection urlConnection = null;
-                BufferedReader reader = null;
+
+
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+        StringBuilder buffer = new StringBuilder();
+
+
+        try {
+            String urlString;
+            if (sortByPop) {
+                urlString = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=" + API_KEY;
+            } else {
+                urlString = "http://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&vote_count.gte=500&api_key=" + API_KEY;
+            }
+            URL url = new URL(urlString);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            //Read the input stream into a String
+            InputStream inputStream = urlConnection.getInputStream();
+
+            if (inputStream == null) {
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line).append("\n");
+            }
+            if (buffer.length() == 0) {
+                return null;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (reader != null) {
 
                 try {
-                    String urlString;
-                    if (sortByPop) {
-                        urlString = "http://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=" + API_KEY;
-                    } else {
-                        urlString = "http://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&vote_count.gte=500&api_key=" + API_KEY;
-                    }
-                    URL url = new URL(urlString);
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.connect();
-
-                    //Read the input stream into a String
-                    InputStream inputStream = urlConnection.getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-                    if (inputStream == null) {
-                        return null;
-                    }
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line + "\n");
-                    }
-                    if (buffer.length() == 0) {
-                        return null;
-                    }
-                    return buffer.toString();
-
-                } catch (Exception e) {
-                    continue;
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
-                    if (reader != null) {
-                        try {
-                            reader.close();
-                        } catch (final IOException e) {
-                        }
-                    }
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
+        return buffer.toString();
     }
 
     public ArrayList<String> getPosterPaths(boolean sortByPop) throws JSONException {
 
-        refresh(sortByPop);
+        if (isNetworkAvailable())
+            moviesJSON = getMoviesJSON(sortByPop);
 
         JSONArray moviesArray = new JSONObject(moviesJSON).getJSONArray("results");
         ArrayList<String> posterPaths = new ArrayList<>();
@@ -114,6 +112,5 @@ public class APITools {
 
         return posterPaths;
     }
-
 
 }

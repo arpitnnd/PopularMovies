@@ -16,6 +16,7 @@ public class ImageAdapter extends BaseAdapter {
     private ArrayList<String> paths;
 
     public ImageAdapter(Context c, ArrayList<String> paths) {
+        System.out.println("ImageAdapter() called.");
         mContext = c;
         this.paths = paths;
     }

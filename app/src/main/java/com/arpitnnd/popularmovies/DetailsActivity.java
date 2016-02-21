@@ -12,6 +12,11 @@ import com.bumptech.glide.Glide;
 
 import org.json.JSONException;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 public class DetailsActivity extends AppCompatActivity {
 
     int position;
@@ -22,23 +27,31 @@ public class DetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_details);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         position = getIntent().getIntExtra("position", 0);
         MovieDetails movieDetails = new MovieDetails();
         try {
-            movieDetails = APITools.getMovieDetails(position);
+            movieDetails = MainActivity.api.getMovieDetails(position);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         ((TextView) findViewById(R.id.title)).setText(movieDetails.movieTitle);
         Drawable d = this.getResources().getDrawable(R.drawable.loading);
-        findViewById(R.id.poster).getLayoutParams().width = getResources().getDisplayMetrics().widthPixels / 2;
+        findViewById(R.id.poster).getLayoutParams().width = getResources()
+                .getDisplayMetrics().widthPixels / 2 - 50;
         findViewById(R.id.poster).requestLayout();
         Glide.with(this).load("http://image.tmdb.org/t/p/w185/" + movieDetails.posterPath)
                 .placeholder(d).into((ImageView) findViewById(R.id.poster));
-        ((TextView) findViewById(R.id.date)).setText(movieDetails.releaseDate);
+        SimpleDateFormat input = new SimpleDateFormat("yyyy-mm-dd", Locale.getDefault());
+        try {
+            ((TextView) findViewById(R.id.date)).setText(DateFormat.getDateInstance(DateFormat.SHORT)
+                    .format(input.parse(movieDetails.releaseDate)));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         ((TextView) findViewById(R.id.rating)).setText(movieDetails.voteAverage);
         ((TextView) findViewById(R.id.overview)).setText(movieDetails.plot);
 
@@ -46,9 +59,6 @@ public class DetailsActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        /*Handle action bar item clicks here. The action bar will
-          automatically handle clicks on the Home/Up button, as long
-          as a parent activity is specified in AndroidManifest.xml.*/
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
